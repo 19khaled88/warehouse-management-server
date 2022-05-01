@@ -57,13 +57,6 @@ async function run() {
       const query = { email: emailAddress }
       const cursor = productCollection.find(query)
       const result = await cursor.toArray()
-      // if ((await cursor.count()) === 0) {
-      //   res.send('No document found')
-      //   console.log('No document found')
-      // } else {
-      //   const foundResult = await cursor.forEach(function (result) {
-      //     return result
-      //   })
       res.send(result)
     })
 
@@ -133,13 +126,6 @@ async function run() {
       const posts = await cursor.toArray()
       res.send(posts)
     })
-    // index posts
-    // app.get('/postsCount', async (req, res) => {
-    //   const query = {}
-    //   const cursor = postCollection.find(query)
-    //   const posts = await cursor.count()
-    //   res.send({ posts })
-    // })
 
     // create new item
     app.post('/addItem', async (req, res) => {
@@ -164,26 +150,6 @@ async function run() {
       }
       // res.send(result);
     })
-
-    // update user
-    // app.put('/user/:usrId', async (req, res) => {
-    //   const id = req.params.usrId
-    //   const query = { _id: ObjectId(id) }
-    //   const options = { upsert: true }
-    //   const updateDoc = {
-    //     $set: {
-    //       name: req.body.name,
-    //       email: req.body.email,
-    //     },
-    //   }
-    //   const result = await userCollection.updateOne(query, updateDoc, options)
-    //   if (result.deletedCount === 1) {
-    //     console.log('Successfully Updated.')
-    //   } else {
-    //     console.log('No documents matched the query. Updated 0 documents.')
-    //   }
-    //   res.send(result)
-    // })
   } finally {
     // await client.close();
   }
