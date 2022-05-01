@@ -43,6 +43,9 @@ async function run() {
       const items = await cursor.toArray()
       res.send(items)
     })
+    app.get('/test', (req, res) => {
+      res.send('test has been successfull')
+    })
 
     // single item
     app.get('/getInventory/:id', async (req, res) => {
