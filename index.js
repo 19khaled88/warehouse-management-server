@@ -2,12 +2,12 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 
-const { MongoClient, ServerApiVersion } = require('mongodb')
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
 const cors = require('cors')
 const port = process.env.PORT || 5000
-const ObjectId = require('mongodb').ObjectId
+// const ObjectId = require('mongodb').ObjectId
 //for responding to client request
-var objectId = new ObjectId()
+// var objectId = new ObjectId()
 app.use(cors())
 
 //for body parsing
@@ -17,8 +17,6 @@ app.get('/', (req, res) => {
   res.send('Hello, server working')
 })
 
-//user:
-//pass:
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ka5da.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`
 
 // const uri = `mongodb+srv://khaled:VNHAybzMnVDF6NMq@cluster0.ka5da.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -49,12 +47,75 @@ async function run() {
     // single item
     app.get('/getInventory/:id', async (req, res) => {
       const id = req.params.id
-      var o_id = new ObjectId(id)
-      // const query = { _id: ObjectId(id) }
-    
-      const cursor = await productCollection.find(ObjectId(id))
-
+      const query = { _id: ObjectId(id) }
+      const cursor = await productCollection.findOne(query)
       res.send(cursor)
+    })
+    // my item
+    app.get('/getMyItem/:email', async (req, res) => {
+      const emailAddress = req.params.email
+      const query = { email: emailAddress }
+      const cursor = productCollection.find(query)
+      const result = await cursor.toArray()
+      // if ((await cursor.count()) === 0) {
+      //   res.send('No document found')
+      //   console.log('No document found')
+      // } else {
+      //   const foundResult = await cursor.forEach(function (result) {
+      //     return result
+      //   })
+      res.send(result)
+    })
+
+    // items delivered
+    app.put('/updateInventory/:id/:quantity', async (req, res) => {
+      const id = req.params.id
+      const quantity = req.params.quantity
+      const decreasedValue = parseInt(quantity) - 1
+      const query = { _id: ObjectId(id) }
+      const options = { upsert: true }
+      const updateDoc = {
+        $set: {
+          quantity: decreasedValue,
+        },
+      }
+      const result = await productCollection.updateOne(
+        query,
+        updateDoc,
+        options,
+      )
+      if (result.modifiedCount === 1) {
+        console.log('Successfully Updated.')
+      } else {
+        console.log('No documents matched the query. Updated 0 documents.')
+      }
+      res.send(result)
+    })
+
+    // restock inventory
+    app.post('/restock/:id/:quantity', async (req, res) => {
+      const id = req.params.id
+      const quantity = parseInt(req.params?.quantity)
+      const data = parseInt(req.body?.inventory)
+      const totalInventory = quantity + data
+      const query = { _id: ObjectId(id) }
+      const options = { upsert: true }
+      const updateDoc = {
+        $set: {
+          quantity: totalInventory,
+        },
+      }
+      const result = await productCollection.updateOne(
+        query,
+        updateDoc,
+        options,
+      )
+      if (result.modifiedCount === 1) {
+        console.log('Successfully Updated.')
+      } else {
+        console.log('No documents matched the query. Updated 0 documents.')
+      }
+      res.send(result)
     })
 
     // manage inventory items
@@ -73,12 +134,12 @@ async function run() {
       res.send(posts)
     })
     // index posts
-    app.get('/postsCount', async (req, res) => {
-      const query = {}
-      const cursor = postCollection.find(query)
-      const posts = await cursor.count()
-      res.send({ posts })
-    })
+    // app.get('/postsCount', async (req, res) => {
+    //   const query = {}
+    //   const cursor = postCollection.find(query)
+    //   const posts = await cursor.count()
+    //   res.send({ posts })
+    // })
 
     // create new item
     app.post('/addItem', async (req, res) => {
@@ -105,28 +166,24 @@ async function run() {
     })
 
     // update user
-    app.put('/user/:usrId', async (req, res) => {
-      // const id = req.body;
-      const id = req.params.usrId
-
-      const query = { _id: ObjectId(id) }
-
-      const options = { upsert: true }
-
-      const updateDoc = {
-        $set: {
-          name: req.body.name,
-          email: req.body.email,
-        },
-      }
-      const result = await userCollection.updateOne(query, updateDoc, options)
-      if (result.deletedCount === 1) {
-        console.log('Successfully deleted one document.')
-      } else {
-        console.log('No documents matched the query. Deleted 0 documents.')
-      }
-      res.send(result)
-    })
+    // app.put('/user/:usrId', async (req, res) => {
+    //   const id = req.params.usrId
+    //   const query = { _id: ObjectId(id) }
+    //   const options = { upsert: true }
+    //   const updateDoc = {
+    //     $set: {
+    //       name: req.body.name,
+    //       email: req.body.email,
+    //     },
+    //   }
+    //   const result = await userCollection.updateOne(query, updateDoc, options)
+    //   if (result.deletedCount === 1) {
+    //     console.log('Successfully Updated.')
+    //   } else {
+    //     console.log('No documents matched the query. Updated 0 documents.')
+    //   }
+    //   res.send(result)
+    // })
   } finally {
     // await client.close();
   }
